@@ -106,16 +106,16 @@ public:
 class Sentence {
     size_t length;
     std::vector<std::shared_ptr<Token>> tokens;
-    TokenFactory& tokenFactory;
+    std::shared_ptr<TokenFactory> tokenFactory;
 public:
-    Sentence(TokenFactory& tokenFactory) : length(0), tokenFactory(tokenFactory) {}
+    Sentence(std::shared_ptr<TokenFactory> tokenFactory) : length(0), tokenFactory(tokenFactory) {}
     Sentence& addWord(std::string word) {
-        tokens.push_back(tokenFactory.getWordToken(word, length));
+        tokens.push_back(tokenFactory->getWordToken(word, length));
         length += tokens.back()->length();
         return *this;
     }
     Sentence& addNumber(ushort num) {
-        tokens.push_back(tokenFactory.getNumberToken(num));
+        tokens.push_back(tokenFactory->getNumberToken(num));
         length += tokens.back()->length();
         return *this;
     }
@@ -135,11 +135,11 @@ public:
 };
 
 int main(int, char**){
-    TokenFactory* tokenFactory = new TokenFactory;
-    Sentence sentence(*tokenFactory);
+    std::shared_ptr<TokenFactory> tokenFactory = std::make_shared<TokenFactory>();
+    Sentence sentence(tokenFactory);
     sentence.addWord("Today").addWord("November").addNumber(21).addWord("at").addNumber(13)
             .addWord("hours").addWord("and").addNumber(21).addWord("minutes");
     sentence.print();
-    delete tokenFactory;
+    tokenFactory.reset();
     sentence.print();
 }
