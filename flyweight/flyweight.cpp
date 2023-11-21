@@ -95,8 +95,12 @@ public:
     }
 
     std::shared_ptr<Token> getWordToken(std::string word, size_t wordStart) {
-        return std::make_shared<TokenWithID>(std::make_shared<WordToken>(word, wordStart));
+        if (word.length() > 5)
+            return std::make_shared<TokenWithID>(std::make_shared<WordToken>(word, wordStart));
+        else
+            return std::make_shared<Token>(std::make_shared<WordToken>(word, wordStart));
     }
+
 };
 
 class Sentence {
