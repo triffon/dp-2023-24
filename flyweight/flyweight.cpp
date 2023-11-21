@@ -15,22 +15,45 @@ public:
     std::size_t getPosition() const { return position; }
 };
 
-class Token {
+// абстракция за реализации
+class ConcreteToken {
 public:
-    virtual size_t length() const { return toString().length(); }
-    virtual void print(Context const& context) const = 0;
     virtual std::string toString() const = 0;
+    virtual void print(Context const& context) const = 0;
+    virtual size_t length() const { return toString().length(); }
+};
+
+// абстракция за абстракции
+class Token {
+protected:
+    std::shared_ptr<ConcreteToken> concreteToken;
+public:
+    Token() = delete;
+    Token(std::shared_ptr<ConcreteToken> concreteToken) : concreteToken(concreteToken) {}
+    virtual size_t length() const {
+        return concreteToken->length();
+    }
+    virtual void print(Context const& context) const {
+        concreteToken->print(context);
+    }
     virtual ~Token() {}
 };
 
+// конкретизирана абстракция
 class TokenWithID : public Token {
 protected:
     unsigned id;
 public:
-    TokenWithID() : id(rand()) {}
+    TokenWithID(std::shared_ptr<ConcreteToken> concreteToken) : Token(concreteToken), id(rand()) {}
+    virtual void print(Context const& context) const {
+        std::cout << "{" << std::to_string(id) + "} ";
+        Token::print(context);
+    }
+
 };
 
-class NumberToken : public Token {
+// конкретна реализация
+class NumberToken : public ConcreteToken {
     ushort number;
 public:
     NumberToken(ushort number) : number(number) {}
@@ -42,7 +65,8 @@ public:
     }
 };
 
-class WordToken : public TokenWithID {
+// конкретна реализация
+class WordToken : public ConcreteToken {
     std::string word;
     size_t wordStart;
 public:
@@ -51,7 +75,7 @@ public:
     void print(Context const& context) const {
         if (context.getPosition() < wordStart || context.getPosition() >= wordStart + length())
             throw std::runtime_error(std::string("Невалиден контекст за думата ") + toString());
-        std::cout << "{" + std::to_string(id) + "} Това е думата " << toString() << " на позиция " << context.getPosition();
+        std::cout << "Това е думата " << toString() << " на позиция " << context.getPosition();
     }
 
     std::string toString() const {
@@ -64,13 +88,14 @@ class TokenFactory {
 public:
 
     std::shared_ptr<Token> getNumberToken(ushort num) {
-        if (numberTokens.count(num) == 0)
+        if (numberTokens.count(num) == 0) {
             numberTokens[num] = std::make_shared<NumberToken>(num);
-        return numberTokens[num];
+        }
+        return std::make_shared<Token>(numberTokens[num]);
     }
 
     std::shared_ptr<Token> getWordToken(std::string word, size_t wordStart) {
-        return std::make_shared<WordToken>(word, wordStart);
+        return std::make_shared<TokenWithID>(std::make_shared<WordToken>(word, wordStart));
     }
 };
 
