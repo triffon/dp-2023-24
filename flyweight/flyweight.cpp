@@ -17,17 +17,23 @@ public:
 
 class Token {
 public:
-    virtual size_t length() const = 0;
+    virtual size_t length() const { return toString().length(); }
     virtual void print(Context const& context) const = 0;
     virtual std::string toString() const = 0;
     virtual ~Token() {}
+};
+
+class TokenWithID : public Token {
+protected:
+    unsigned id;
+public:
+    TokenWithID() : id(rand()) {}
 };
 
 class NumberToken : public Token {
     ushort number;
 public:
     NumberToken(ushort number) : number(number) {}
-    size_t length() const { return std::to_string(number).length(); }
     void print(Context const& context) const {
         std::cout << "Това е числото " << number << " на позиция " << context.getPosition();
     }
@@ -36,7 +42,7 @@ public:
     }
 };
 
-class WordToken : public Token {
+class WordToken : public TokenWithID {
     std::string word;
     size_t wordStart;
 public:
@@ -45,7 +51,7 @@ public:
     void print(Context const& context) const {
         if (context.getPosition() < wordStart || context.getPosition() >= wordStart + length())
             throw std::runtime_error(std::string("Невалиден контекст за думата ") + toString());
-        std::cout << "Това е думата " << toString() << " на позиция " << context.getPosition();
+        std::cout << "{" + std::to_string(id) + "} Това е думата " << toString() << " на позиция " << context.getPosition();
     }
 
     std::string toString() const {
