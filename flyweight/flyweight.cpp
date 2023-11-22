@@ -84,14 +84,14 @@ public:
 };
 
 class TokenFactory {
-    std::map<ushort, std::shared_ptr<NumberToken>> numberTokens;
+    std::map<ushort, std::shared_ptr<Token>> numberTokens;
 public:
 
     std::shared_ptr<Token> getNumberToken(ushort num) {
         if (numberTokens.count(num) == 0) {
-            numberTokens[num] = std::make_shared<NumberToken>(num);
+            numberTokens[num] = std::make_shared<TokenWithID>(std::make_shared<NumberToken>(num));
         }
-        return std::make_shared<Token>(numberTokens[num]);
+        return numberTokens[num];
     }
 
     std::shared_ptr<Token> getWordToken(std::string word, size_t wordStart) {
@@ -132,6 +132,10 @@ public:
             std::cout << std::endl;
         }
     }
+
+    void changeTokenFactory(std::shared_ptr<TokenFactory> tokenFactory) {
+        this->tokenFactory = tokenFactory;
+    }
 };
 
 int main(int, char**){
@@ -141,5 +145,8 @@ int main(int, char**){
             .addWord("hours").addWord("and").addNumber(21).addWord("minutes");
     sentence.print();
     tokenFactory.reset();
+    sentence.print();
+    sentence.changeTokenFactory(std::make_shared<TokenFactory>());
+    sentence.addNumber(21);
     sentence.print();
 }
